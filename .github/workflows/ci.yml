@@ -1,0 +1,19 @@
+name: CI
+
+on:
+  push:
+    branches: ['*']
+
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    container: crystallang/crystal:latest-alpine
+    steps:
+      - name: Download source code
+        uses: actions/checkout@v2
+      - name: Install Dependencies
+        run: shards install
+      - name: Format
+        run: "crystal tool format --check"
+      - name: Run tests
+        run: "crystal spec --warnings all --error-on-warnings"

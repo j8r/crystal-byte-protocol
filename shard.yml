@@ -1,0 +1,13 @@
+name: crystal-byte-protocol
+version: 0.1.0
+
+authors:
+  - Julien Reichardt <contact@jrei.ch>
+
+dependencies:
+  crystalizer:
+    github: j8r/crystalizer
+
+description: A byte protocol for Crystal.
+
+license: ISC
