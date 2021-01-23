@@ -3,6 +3,16 @@ require "./server"
 
 # Convert Crystal protocol messages to JavaScript, using the  https://github.com/j8r/js-byte-format library.
 module CrystalByteProtocol::CrystalToJS
+  class Error < Exception
+  end
+
+  Types = {String, Bool, Int8, UInt8, Int16, UInt16, Int32, UInt32, Float32, Float64}
+
+  enum SourceType
+    Client
+    Server
+  end
+
   def self.convert_to_file(
     file : Path | String,
     module_to_convert : M.class,
@@ -15,13 +25,6 @@ module CrystalByteProtocol::CrystalToJS
       CrystalToJS.convert_to_dict io, M, source_type, types: true
       io.puts
     end
-  end
-
-  alias Types = String | Bool | Int8 | UInt8 | Int16 | UInt16 | Int32 | UInt32 | Float32 | Float64
-
-  enum SourceType
-    Client
-    Server
   end
 
   # Yiels each object name of `T` with its JS conversion. If the object contains others, they are also added.
@@ -134,22 +137,28 @@ module CrystalByteProtocol::CrystalToJS
     in .client?
       instance_vars.each do |name, ivar_type|
         io << "\n    encoder.write"
-        if ivar_type.is_a? Enum.class
+        case ivar_type
+        when Enum.class
           io << typeof(ivar_type.values.first.value).name.downcase.camelcase
           io << '(' << type_name << '.' << type_last_name ivar_type
           io << "[this." << name.camelcase(lower: true) << "])"
-        else
+        when .in? Types
           io << ivar_type.name.downcase.camelcase << "(this." << name.camelcase(lower: true) << ')'
+        else
+          raise Error.new "Unsupported type: #{ivar_type}"
         end
       end
     in .server?
       instance_vars.each do |name, ivar_type|
         io << "\n    this." << name.camelcase(lower: true) << " = "
-        if ivar_type.is_a? Enum.class
+        case ivar_type
+        when Enum.class
           io << type_name << '.' << type_last_name ivar_type
           io << "[decoder.read" << typeof(ivar_type.values.first.value).name.downcase.camelcase << "()]"
-        else
+        when .in? Types
           io << "decoder.read" << ivar_type.name.downcase.camelcase << "()"
+        else
+          raise Error.new "Unsupported type: #{ivar_type}"
         end
       end
     end
