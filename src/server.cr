@@ -4,32 +4,26 @@ require "crystalizer/byte_format"
 module CrystalByteProtocol::Server(S)
   property log : Log = Log.for("crystal-byte-protocol.serializer")
 
-  private struct SerializerInstance
-    getter buffer : IO::Memory = IO::Memory.new
-    getter byte_format : Crystalizer::ByteFormat
-
-    def initialize
-      @byte_format = Crystalizer::ByteFormat.new @buffer
-    end
+  def initialize
+    @buffer = IO::Memory.new
+    @byte_format = Crystalizer::ByteFormat.new @buffer
   end
 
-  @buffers = Array(SerializerInstance).new
-
-  # Serialize the message type to `Bytes`.
+  # Serializes the `Message` to `Bytes`.
+  #
+  # The bytes are a view of a buffer. If the method is called again, the buffer will change, and the bytes too.
+  # Use `#dup` to copy and avoid the side effect. Another solution is to use a pool.
   def serialize(object : Message) : Bytes
     @log.trace { object }
-    serializer = @buffers.find &.buffer.empty?
-    if !serializer
-      serializer = SerializerInstance.new
-      @buffers << serializer
-    end
+    @buffer.clear
 
-    serializer.byte_format.serialize object.protocol_number
-    serializer.byte_format.serialize object
-    bytes = serializer.buffer.to_slice
-    yield bytes
-    serializer.buffer.clear
-    bytes
+    @byte_format.serialize object.protocol_number
+    @byte_format.serialize object
+    @buffer.to_slice
+  end
+
+  def empty? : Bool
+    @buffer.empty?
   end
 
   module Message
