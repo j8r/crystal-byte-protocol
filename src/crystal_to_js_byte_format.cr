@@ -123,20 +123,18 @@ module CrystalByteProtocol::CrystalToJS
     case source_type
     in .client?
       io << <<-E
-        /** @param {ByteEncoder} encoder */
-        encode(encoder) {
+        encode(byteEncoder) {
       E
     in .server?
       io << <<-E
-        /** @param {ByteDecoder} decoder */
-        constructor(decoder) {
+        constructor(byteDecoder) {
       E
     end
 
     case source_type
     in .client?
       instance_vars.each do |name, ivar_type|
-        io << "\n    encoder.write"
+        io << "\n    byteEncoder.write"
         case ivar_type
         when Enum.class
           io << typeof(ivar_type.values.first.value).name.downcase.camelcase
@@ -154,9 +152,9 @@ module CrystalByteProtocol::CrystalToJS
         case ivar_type
         when Enum.class
           io << type_name << '.' << type_last_name ivar_type
-          io << "[decoder.read" << typeof(ivar_type.values.first.value).name.downcase.camelcase << "()]"
+          io << "[byteDecoder.read" << typeof(ivar_type.values.first.value).name.downcase.camelcase << "()]"
         when .in? Types
-          io << "decoder.read" << ivar_type.name.downcase.camelcase << "()"
+          io << "byteDecoder.read" << ivar_type.name.downcase.camelcase << "()"
         else
           raise Error.new "Unsupported type: #{ivar_type}"
         end
