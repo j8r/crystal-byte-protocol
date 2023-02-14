@@ -33,7 +33,6 @@ module CrystalByteProtocol::CrystalToJS
       {% module_const = T.constant(module_name) %}
       io << "export "
       convert io, {{module_const}}, source_type: source_type
-
       {% for obj_name in module_const.constants %}
         {% obj_const = module_const.constant(obj_name) %}
         io << "\n\n" 
@@ -50,7 +49,9 @@ module CrystalByteProtocol::CrystalToJS
   # If no name is defined, it is supposed to be a string enum of a message.
   def self.convert_enum(io : IO, type : Enum.class, source_type : SourceType, types : Bool = false) : Nil
     io << " = Object.freeze({"
-    type.each do |member, value|
+    # type.each will return duplicates for members having the same values
+    type.names.each do |member|
+      value = type.parse(member).value
       io << "\n  "
       case source_type
       in .client?

@@ -28,5 +28,35 @@ describe CrystalByteProtocol::CrystalToJS do
         CrystalByteProtocol::CrystalToJS.convert IO::Memory.new, Test, :server
       end
     end
+
+    describe "an enum" do
+      it "client" do
+        str = String.build do |str|
+          CrystalByteProtocol::CrystalToJS.convert_all str, TestClient, :client
+        end
+        str.should contain <<-E
+        Object.freeze({
+          A: 0,
+          B: 0,
+          C: 1,
+          D: 1,
+        })
+        E
+      end
+
+      it "server" do
+        str = String.build do |str|
+          CrystalByteProtocol::CrystalToJS.convert_all str, TestClient, :server
+        end
+        str.should contain <<-E
+        Object.freeze({
+          0: "A",
+          0: "B",
+          1: "C",
+          1: "D",
+        })
+        E
+      end
+    end
   end
 end
