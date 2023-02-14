@@ -62,4 +62,4 @@ socket.send(Client.serialize(new ByteEncoder(), object))
 
 ## License
 
-Copyright (c) 2021 Julien Reichardt - ISC License
+Copyright (c) 2021-2023 Julien Reichardt - ISC License
