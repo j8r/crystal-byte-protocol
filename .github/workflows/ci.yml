@@ -10,10 +10,10 @@ jobs:
     container: crystallang/crystal:latest-alpine
     steps:
       - name: Download source code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Install Dependencies
         run: shards install
       - name: Format
         run: "crystal tool format --check"
       - name: Run tests
-        run: "crystal spec --warnings all --error-on-warnings"
+        run: "crystal spec --error-on-warnings"
